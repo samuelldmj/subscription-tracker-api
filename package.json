@@ -4,13 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node .app.js",
-    "dev": "nodemon app.js"
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@arcjet/inspect": "^1.0.0-beta.5",
     "@arcjet/node": "^1.0.0-beta.5",
-    "@upstash/workflow": "^0.2.12",
+    "and": "^0.0.3",
+    "babel-jest": "^30.2.0",
     "bcrypt": "^5.1.1",
     "cookie-parser": "~1.4.4",
     "dayjs": "^1.11.13",
@@ -20,14 +23,18 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.2",
-    "morgan": "~1.9.1",
+    "morgan": "^1.10.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^7.0.3"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
     "@eslint/js": "^9.24.0",
     "eslint": "^9.24.0",
     "globals": "^16.0.0",
-    "nodemon": "^3.1.9"
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.9",
+    "supertest": "^7.1.4"
   }
 }
