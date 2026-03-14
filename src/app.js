@@ -13,13 +13,6 @@ import cron from "node-cron";
 import processSubscriptionTasks from "./cron/subscriptionTask.js";
 import processReminderTasks from "./cron/reminderTask.js";
 
-
-import User from "./models/user.model.js";
-import Subscription from "./models/subscription.model.js";
-import SubscriptionHistory from "./models/subscriptionHistory.model.js";
-import reminderModel from "./models/reminder.model.js";
-
-
 import arcjetMiddleware from "./middlewares/arcjet.middleware.js";
 
 
