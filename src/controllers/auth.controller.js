@@ -20,14 +20,12 @@ const signUp = async (req, res, next) => {
 
         // Validate timezone if provided
         const now = dayjs();
+        const tz = dayjs.tz(now, timezone);
         if (timezone) {
-            try {
-                dayjs.tz(now, timezone);
-            } catch (error) {
+            if (!tz.isValid()) {
                 const err = new Error("Invalid timezone");
                 err.statusCode = 400;
-                next(error);
-                throw err;
+                return next(err);
             }
         }
 
