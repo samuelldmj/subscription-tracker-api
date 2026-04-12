@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema(
             default: "UTC",
             trim: true,
         },
+        tokenVersion: {
+            type: Number,
+            default: 0
+        }
     },
     { timestamps: true }
 );
