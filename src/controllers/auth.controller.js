@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -15,7 +14,10 @@ const signUp = async (req, res, next) => {
     try {
         const { name, email, password, timezone } = req.body;
 
-        if (timezone && !dayjs.tz.zone(timezone)) {
+        const isValidTimezone = (tz) =>
+            Intl.supportedValuesOf("timeZone").includes(tz);
+
+        if (timezone && !isValidTimezone(timezone)) {
             const err = new Error("Invalid timezone");
             err.statusCode = 400;
             return next(err);
@@ -34,12 +36,17 @@ const signUp = async (req, res, next) => {
 
         await newUser.save();
 
-        // Generate token
+        // ========== TOKEN VERSIONING IMPLEMENTATION START ==========
+        // TODO: Include tokenVersion in payload for versioning
         const token = jwt.sign(
-            { userId: newUser._id },
+            {
+                userId: newUser._id,
+                tokenVersion: newUser.tokenVersion
+            },
             JWT_SECRET,
             { expiresIn: JWT_EXPIRES_IN }
         );
+        // ========== TOKEN VERSIONING IMPLEMENTATION END ==========
 
         res.status(201).json({
             success: true,
@@ -78,7 +85,17 @@ const signIn = async (req, res, next) => {
             throw error;
         }
 
-        const token = jwt.sign({ userId: getUserByEmail._id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+        // ========== TOKEN VERSIONING IMPLEMENTATION START ==========
+        // TODO: Include tokenVersion in payload for versioning
+        const token = jwt.sign(
+            {
+                userId: getUserByEmail._id,
+                tokenVersion: getUserByEmail.tokenVersion
+            },
+            JWT_SECRET,
+            { expiresIn: JWT_EXPIRES_IN }
+        );
+        // ========== TOKEN VERSIONING IMPLEMENTATION END ==========
 
         res.status(200).json({
             success: true,
@@ -100,6 +117,13 @@ const signIn = async (req, res, next) => {
 
 const signOut = async (req, res, next) => {
     try {
+        // ========== TOKEN VERSIONING IMPLEMENTATION START ==========
+        // TODO: Increment user's tokenVersion to invalidate all active tokens
+        await User.findByIdAndUpdate(req.user._id, {
+            $inc: { tokenVersion: 1 }
+        });
+        // ========== TOKEN VERSIONING IMPLEMENTATION END ==========
+
         res.status(200).json({
             success: true,
             message: "User signed out successfully",
