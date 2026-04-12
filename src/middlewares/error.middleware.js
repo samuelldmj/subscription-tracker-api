@@ -29,10 +29,16 @@ const errorMiddleware = (err, req, res, next) => {
         }
 
         //Mongoose duplicate key
+        // if (err.code === 11000) {
+        //     const message = 'Duplicate field value entered';
+        //     error = new Error(message);
+        //     error.statusCode = 409;
+        // }
         if (err.code === 11000) {
-            const message = 'Duplicate field value entered';
+            const field = Object.keys(err.keyPattern || {})[0];
+            const message = `${field} already exists`;
             error = new Error(message);
-            error.statusCode = 400;
+            error.statusCode = 409;
         }
 
         //Mongoose validation error
