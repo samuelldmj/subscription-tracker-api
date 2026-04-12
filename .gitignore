@@ -62,5 +62,6 @@ typings/
 .next
 
 .todo
-
+todo.md
 /.qodo
+ENDPOINTS-TODO.md
