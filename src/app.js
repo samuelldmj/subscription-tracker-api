@@ -22,12 +22,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(morgan('dev'));
+// Arcjet bot protection - DISABLED for development/Postman
 // app.use(arcjetMiddleware);
 
-
-// Applying arcjetMiddleware only to non-workflow routes
+// Apply only to non-workflow/non-auth routes during dev
 app.use((req, res, next) => {
-    if (req.path.startsWith("/api/v1/workflows")) {
+    if (req.path.startsWith("/api/v1/workflows") || req.path.startsWith("/api/v1/auth") || req.path.startsWith('/api/v1/subscriptions')) {
         return next();
     }
     return arcjetMiddleware(req, res, next);
