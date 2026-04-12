@@ -12,45 +12,34 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const signUp = async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
         const { name, email, password, timezone } = req.body;
 
-        // Validate timezone if provided
-        const now = dayjs();
-        const tz = dayjs.tz(now, timezone);
-        if (timezone) {
-            if (!tz.isValid()) {
-                const err = new Error("Invalid timezone");
-                err.statusCode = 400;
-                return next(err);
-            }
-        }
-
-        // Check if user already exists
-        const getUserByEmail = await User.findOne({ email }).session(session);
-        if (getUserByEmail) {
-            const error = new Error("User already exists");
-            error.statusCode = 409;
-            throw error;
+        if (timezone && !dayjs.tz.zone(timezone)) {
+            const err = new Error("Invalid timezone");
+            err.statusCode = 400;
+            return next(err);
         }
 
         // Hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create user with timezone (defaults to "UTC" in model if not provided)
-        const newUsers = await User.create(
-            [{ name, email, password: hashedPassword, timezone: timezone || "UTC" }],
-            { session }
+        // Create user (let schema handle default timezone)
+        const newUser = new User({
+            name,
+            email,
+            password: hashedPassword,
+            ...(timezone && { timezone }),
+        });
+
+        await newUser.save();
+
+        // Generate token
+        const token = jwt.sign(
+            { userId: newUser._id },
+            JWT_SECRET,
+            { expiresIn: JWT_EXPIRES_IN }
         );
-
-        const token = jwt.sign({ userId: newUsers[0]._id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-
-        await session.commitTransaction();
-        session.endSession();
 
         res.status(201).json({
             success: true,
@@ -58,16 +47,14 @@ const signUp = async (req, res, next) => {
             data: {
                 token,
                 user: {
-                    _id: newUsers[0]._id,
-                    name: newUsers[0].name,
-                    email: newUsers[0].email,
-                    timezone: newUsers[0].timezone,
+                    _id: newUser._id,
+                    name: newUser.name,
+                    email: newUser.email,
+                    timezone: newUser.timezone,
                 },
             },
         });
     } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
         next(error);
     }
 };
