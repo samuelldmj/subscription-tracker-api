@@ -49,6 +49,7 @@ app.use(errorMiddleware);
 
 // Schedule cron jobs
 cron.schedule("* * * * *", processReminderTasks, { timezone: "UTC" });
+//this run at hour zero every day of the year.
 cron.schedule("0 0 * * *", processSubscriptionTasks, { timezone: "UTC" });
 
 

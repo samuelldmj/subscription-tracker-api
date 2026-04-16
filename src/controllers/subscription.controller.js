@@ -92,14 +92,14 @@ const createSubscription = async (req, res, next) => {
         let reminderType = now.isAfter(renewalDateTz) && now.isBefore(gracePeriodEnd) ? "grace-period" : "pre-renewal";
         const remindersToSchedule = reminderType === "pre-renewal"
             ? PRE_RENEWAL_REMINDERS[req.body.frequency]
-            : (req.body.frequency !== "daily" ? GRACE_PERIOD_REMINDERS : []); // No grace reminders for daily
+            : (req.body.frequency !== "daily" ? GRACE_PERIOD_REMINDERS : []);  // No grace reminders for daily
 
         const scheduledReminders = [];
         for (const offset of remindersToSchedule) {
             let reminderDate, reminderLabel;
             if (reminderType === "pre-renewal") {
                 if (req.body.frequency === "daily") {
-                    // Use hours for daily reminders
+                    //hours for daily reminders
                     //the subtraction counts backward from the subscription's end time (renewal date)
                     //say renewal date 2025-05-15 00:00:00 6hrs subtraction would be: 23:00:00, 22:00:00, 21:00:00, 20:00:00, 19:00:00, 18:00:00.
                     reminderDate = renewalDateTz.subtract(offset, "hour");
@@ -107,7 +107,7 @@ const createSubscription = async (req, res, next) => {
                 } else {
                     // Use days for other frequencies
                     reminderDate = renewalDateTz.subtract(offset, "day").startOf("day");
-                    reminderLabel = `${offset}-day-pre-renewal`;
+                    reminderLabel = `${offset}-day-pre-renewal reminder`;
                 }
             } else {
                 // Grace period (only for non-daily)
