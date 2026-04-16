@@ -26,7 +26,7 @@ const signUp = async (req, res, next) => {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create user (let schema handle default timezone)
+        // Create user (schema handle default timezone)
         const newUser = new User({
             name,
             email,
@@ -37,7 +37,6 @@ const signUp = async (req, res, next) => {
         await newUser.save();
 
         // ========== TOKEN VERSIONING IMPLEMENTATION START ==========
-        // TODO: Include tokenVersion in payload for versioning
         const token = jwt.sign(
             {
                 userId: newUser._id,

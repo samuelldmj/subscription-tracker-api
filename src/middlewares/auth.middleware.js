@@ -60,7 +60,7 @@ const authorize = async (req, res, next) => {
                 decoded tokenVersion = 0
                 
                         // 0 === 0 → OK
-                        // ✅ Access granted
+                        // Access granted
                 
                 
                         // ==============================
@@ -72,7 +72,7 @@ const authorize = async (req, res, next) => {
                 
                 
                         // ==============================
-                        // 4. REUSE OLD (STALE) TOKEN ❌
+                        // 4. REUSE OLD (STALE) TOKEN 
                         // ==============================
                 
                         // Attacker / client still has OLD token:
@@ -94,7 +94,7 @@ const authorize = async (req, res, next) => {
                         // Middleware check:
                         if (1 !== 0) → TRUE
                 
-                        // ❌ RESULT:
+                        //  RESULT:
                         // "Token has been revoked - please sign in again (401)"
                         // Access DENIED
                 
@@ -121,7 +121,7 @@ const authorize = async (req, res, next) => {
                         // decoded tokenVersion = 1
                 
                         // 1 === 1 → OK
-                        // ✅ Access granted
+                        //  Access granted
                 ========== TOKEN VERSIONING IMPLEMENTATION END ==========
                         */
         if (user.tokenVersion !== decoded.tokenVersion) {
