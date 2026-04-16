@@ -307,4 +307,140 @@ const getUserSubscriptions = async (req, res, next) => {
     }
 };
 
-export { createSubscription, renewSubscription, getUserSubscriptions };
+
+const getSubscriptions = async (req, res, next) => {
+    try {
+        const subscriptions = await Subscription.find().populate('user_id', 'name email');
+        res.status(200).json({ success: true, data: subscriptions });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getSubscriptionById = async (req, res, next) => {
+    try {
+        const subscription = await Subscription.findById(req.params.id).populate('user_id', 'name email');
+        if (!subscription) {
+            const error = new Error('Subscription not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        // Owner or admin check
+        if (subscription.user_id._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            const error = new Error('Not authorized');
+            error.statusCode = 403;
+            throw error;
+        }
+
+        res.status(200).json({ success: true, data: subscription });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const updateSubscription = async (req, res, next) => {
+    try {
+        const subscription = await Subscription.findById(req.params.id);
+        if (!subscription) {
+            const error = new Error('Subscription not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        // Owner or admin
+        if (subscription.user_id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            const error = new Error('Not authorized');
+            error.statusCode = 403;
+            throw error;
+        }
+
+        const updated = await Subscription.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        ).populate('user_id', 'name email');
+
+        res.status(200).json({ success: true, data: updated });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const deleteSubscription = async (req, res, next) => {
+    try {
+        const subscription = await Subscription.findById(req.params.id);
+        if (!subscription) {
+            const error = new Error('Subscription not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        // Owner or admin
+        if (subscription.user_id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            const error = new Error('Not authorized');
+            error.statusCode = 403;
+            throw error;
+        }
+
+        await Subscription.findByIdAndDelete(req.params.id);
+
+        res.status(200).json({ success: true, message: 'Subscription deleted' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const cancelSubscription = async (req, res, next) => {
+    try {
+        const subscription = await Subscription.findById(req.params.id).populate('user_id', 'name email');
+        if (!subscription) {
+            const error = new Error('Subscription not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        // Owner or admin
+        if (subscription.user_id._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            const error = new Error('Not authorized');
+            error.statusCode = 403;
+            throw error;
+        }
+
+        subscription.status = 'cancelled';
+        await subscription.save();
+
+        res.status(200).json({ success: true, data: subscription });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getUpcomingRenewals = async (req, res, next) => {
+    try {
+        const now = new Date();
+        const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+        const upcoming = await Subscription.find({
+            renewalDate: { $gte: now, $lte: weekFromNow },
+            status: 'active'
+        }).populate('user_id', 'name email');
+
+        res.status(200).json({ success: true, data: upcoming });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+export {
+    createSubscription,
+    renewSubscription,
+    getUserSubscriptions,
+    getSubscriptions,
+    getSubscriptionById,
+    updateSubscription,
+    deleteSubscription,
+    cancelSubscription,
+    getUpcomingRenewals
+};
