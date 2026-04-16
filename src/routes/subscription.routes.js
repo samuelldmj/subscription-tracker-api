@@ -1,27 +1,46 @@
 import { Router } from "express";
 import { authorize } from "../middlewares/auth.middleware.js";
-import { createSubscription, getUserSubscriptions, renewSubscription } from "../controllers/subscription.controller.js";
+import { adminAuthorize } from "../middlewares/admin.middleware.js";
+import {
+    createSubscription,
+    getUserSubscriptions,
+    renewSubscription,
+    getSubscriptions,
+    getSubscriptionById,
+    updateSubscription,
+    deleteSubscription,
+    cancelSubscription,
+    getUpcomingRenewals
+} from "../controllers/subscription.controller.js";
 
 
 const subscriptionRouter = Router();
 
-subscriptionRouter.get('/', (req, res) => res.send({ title: 'GET all subscriptions' }));
+// Admin get all
+subscriptionRouter.get('/', authorize, adminAuthorize, getSubscriptions);
 
-subscriptionRouter.get('/:id', (req, res) => res.send({ title: 'GET subscription by id' }));
+// Owner or admin get single
+subscriptionRouter.get('/:id', authorize, getSubscriptionById);
 
+// Authenticated user create
 subscriptionRouter.post('/', authorize, createSubscription);
 
-subscriptionRouter.put('/:id', (req, res) => res.send({ title: 'update subscription' }));
+// Owner or admin update
+subscriptionRouter.put('/:id', authorize, updateSubscription);
 
-subscriptionRouter.delete('/:id', (req, res) => res.send({ title: 'delete a subscription' }));
+// Owner or admin delete
+subscriptionRouter.delete('/:id', authorize, deleteSubscription);
 
+// User get own subs
 subscriptionRouter.get('/user/:id', authorize, getUserSubscriptions);
 
+// Renew
 subscriptionRouter.post("/renew", authorize, renewSubscription);
 
-subscriptionRouter.put('/:id/cancel', (req, res) => res.send({ title: 'cancel subscriptions' }));
+// Owner or admin cancel
+subscriptionRouter.put('/:id/cancel', authorize, cancelSubscription);
 
-subscriptionRouter.get('/upcoming-renewals', (req, res) => res.send({ title: 'get upcoming renewals' }));
-
+// Auth get upcoming renewals
+subscriptionRouter.get('/upcoming-renewals', authorize, getUpcomingRenewals);
 
 export default subscriptionRouter;
